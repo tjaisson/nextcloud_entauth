@@ -1,0 +1,15 @@
+{
+    "name": "Entcore Auth",
+    "description": "Entcore OAuth 2 authentication",
+    "type": "project",
+    "license": "AGPL",
+    "authors": [
+        {
+            "name": "Thomas Jaisson"
+        }
+    ],
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^5.4"
+    }
+}
