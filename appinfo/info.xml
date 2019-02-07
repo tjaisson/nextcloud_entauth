@@ -14,10 +14,4 @@
     <dependencies>
         <nextcloud min-version="16" max-version="16"/>
     </dependencies>
-    <navigations>
-        <navigation>
-            <name>Entcore Auth</name>
-            <route>entcoreauth.page.index</route>
-        </navigation>
-    </navigations>
 </info>
