@@ -7,6 +7,8 @@ style('entcoreauth', 'style');
 	<div id="app-content">
 		<div><?php p($_['crpt']); ?></div>
 		<div><?php p($_['decrpt']); ?></div>
+		<div><?php p($_['tke']); ?></div>
+		<div><?php p($_['tk']); ?></div>
 	</div>
 </div>
 
