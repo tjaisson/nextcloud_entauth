@@ -1,7 +1,7 @@
 <?php
 namespace OCA\EntcoreAuth;
 
-class Oauth {
+class AuthServices {
     
     public function getConnector($srv) {
         if(($srv !== 'mln') && ($srv !== 'pcn')) return false;
