@@ -75,10 +75,10 @@ class PageController extends Controller {
 	 */
 	public function login($srv, $code, $state) {
 	    if($this->userSession->isLoggedIn()) $this->userSession->logout();
-	    //Get connector for specified auth/identity provider
-	    $con = $this->AuthServices->getConnector($srv);
-	    if(!$con) return new NotFoundResponse();
-	    $con->setRedirectUri();
+	    //Get provider for specified auth/identity provider
+	    $prov = $this->AuthServices->getProvider($srv);
+	    if(!$prov) return new NotFoundResponse();
+	    $prov->setRedirectUri();
 	    if($code || $state) {
 	        //we are back from auth provider
 	        if((!$code) || (!$state)) return new NotFoundResponse();
@@ -87,10 +87,10 @@ class PageController extends Controller {
 	        $csrf = new CsrfToken($csrf);
 	        if(!$this->Csrfman->isTokenValid($csrf)) return new NotFoundResponse();
 	        //get token from auth provider
-	        $tk = $con->getToken($code);
+	        $tk = $prov->getToken($code);
 	        if(!$tk) return new NotFoundResponse();
 	        //get user data from identity  provider
-	        $userData = $con->getUserData($tk);
+	        $userData = $prov->getUserData($tk);
 	        if((!$userData) || (!$userData->userId)) return new NotFoundResponse();
 	        //Search internal user that is linked to this external one.
 	        $uid = $this->ExternalIds->GetUser($userData->userId);
@@ -113,7 +113,7 @@ class PageController extends Controller {
 	    } else {
 	        //Redirect to auth provider
     	    $state = $this->Crypt->seal($this->Csrfman->getToken());
-    	    return new RedirectResponse($con->getLoginUrl($state));
+    	    return new RedirectResponse($prov->getLoginUrl($state));
 	    }
 	}
 	
@@ -131,6 +131,20 @@ class PageController extends Controller {
 	    $tk = $this->Crypt->open($tk);
 	    if(!$tk) return new NotFoundResponse();
 	    
+	    //validate provided creds
+	    
+	    
+	    
+	    
+	    //get user data from identity  provider
+	    $prov = $this->AuthServices->getProvider($srv);
+	    if(!$prov) return new NotFoundResponse();
+	    $userData = $prov->getUserData($tk);
+	    if((!$userData) || (!$userData->userId)) return new NotFoundResponse();
+	    
+	    //link internal user to external user
+	    
+	    
+	    
 	}
-	
 }
