@@ -1,5 +1,5 @@
 <?php
-namespace OCA\EntcoreAuth;
+namespace OCA\EntAuth;
 
 class ExternalIds {
 }

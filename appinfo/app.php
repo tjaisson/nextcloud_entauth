@@ -22,7 +22,7 @@
  *
  */
 
-namespace OCA\Entcoreauth\AppInfo;
+namespace OCA\Entauth\AppInfo;
 
 \OC_App::registerLogIn([
     'name' => 'Se connecter avec MonLycée.net',

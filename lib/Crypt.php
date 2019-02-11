@@ -1,5 +1,5 @@
 <?php
-namespace OCA\EntcoreAuth;
+namespace OCA\EntAuth;
 
 use OCP\Files\IAppData;
 use OCP\Files\NotFoundException;
@@ -12,6 +12,8 @@ class Crypt {
     const method = 'aes128';
     const period = 60;
     private $appData;
+    private $cyphKey;
+    private $decyphKeys;
     
     
     public function __construct(IAppData $appData) {
@@ -49,26 +51,29 @@ class Crypt {
     }
     
     private function getDecyphKey($keyId) {
-        $files = $this->getStoreFiles();
-        $oLock = $files['lock']->read();
-        if(!oLock) {
-            $files['lock']->getContent();
-            return false;
-        }
-        try {
-            if(\flock($oLock, \LOCK_SH)) {
-                try {
-                    $s = \json_decode($files['keys']->getContent());
-                } finally {
-                    \flock($oLock, \LOCK_UN);
-                }
-            } else {
+        if(!$this->decyphKeys) {
+            $files = $this->getStoreFiles();
+            $oLock = $files['lock']->read();
+            if(!oLock) {
                 $files['lock']->getContent();
                 return false;
             }
-        } finally {
-            \fclose($oLock);
+            try {
+                if(\flock($oLock, \LOCK_SH)) {
+                    try {
+                        $this->decyphKeys = \json_decode($files['keys']->getContent());
+                    } finally {
+                        \flock($oLock, \LOCK_UN);
+                    }
+                } else {
+                    $files['lock']->getContent();
+                    return false;
+                }
+            } finally {
+                \fclose($oLock);
+            }
         }
+        $s = $this->decyphKeys;
         if(!$s) return false;
         $k = $keyId[0];
         $v = (int)\substr($keyId, 1);
@@ -81,6 +86,7 @@ class Crypt {
     }
     
     private function getCyphKey() {
+        if($this->cyphKey) return $this->cyphKey;
         $t = \time() - self::period;
         $files = $this->getStoreFiles();
         $oLock = $files['lock']->read();
@@ -98,7 +104,8 @@ class Crypt {
                 if($s && $s->c) {
                     $k = $s->{$s->c};
                     if($k && ($k->t > $t)) {
-                        return ['keyId' => "{$s->c}{$k->v}", 'key' => \base64_decode($k->k), 'iv' => \base64_decode($k->iv)];
+                        $this->cyphKey = ['keyId' => "{$s->c}{$k->v}", 'key' => \base64_decode($k->k), 'iv' => \base64_decode($k->iv)];
+                        return $this->cyphKey;
                     }
                 }
             } else {
@@ -106,6 +113,7 @@ class Crypt {
                 return false;
             }
             //need to rotate key
+            $this->decyphKeys = false;
             if(\flock($oLock, \LOCK_EX)) {
                 try {
                     $s = \json_decode($files['keys']->getContent());
@@ -113,7 +121,8 @@ class Crypt {
                     if(!$s-c) $s->c = 'b';
                     $k = $s->{$s->c};
                     if($k && ($k->t > $t)) {
-                        return ['keyId' => "{$s->c}{$k->v}", 'key' => \base64_decode($k->k), 'iv' => \base64_decode($k->iv)];
+                        $this->cyphKey = ['keyId' => "{$s->c}{$k->v}", 'key' => \base64_decode($k->k), 'iv' => \base64_decode($k->iv)];
+                        return $this->cyphKey;
                     }
                     $s->c = ($s->c === 'a') ? 'b' : 'a';
                     $k = $s->{$s->c};
@@ -131,7 +140,8 @@ class Crypt {
                     $k->iv = \base64_encode($ivb);
                     $k->k = \base64_encode($kb);
                     $files['keys']->putContent(\json_encode($s));
-                    return ['keyId' => "{$s->c}{$k->v}", 'key' => $kb, 'iv' => $ivb];
+                    $this->cyphKey = ['keyId' => "{$s->c}{$k->v}", 'key' => $kb, 'iv' => $ivb];
+                    return $this->cyphKey;
                 } finally {
                     \flock($oLock, \LOCK_UN);
                 }

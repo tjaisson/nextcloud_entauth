@@ -1,41 +1,45 @@
 <?php
-namespace OCA\EntcoreAuth\Controller;
+namespace OCA\EntAuth\Controller;
 
+use OCP\AppFramework\Controller;
 use OCP\IRequest;
 use OCP\IUserSession;
+use OCP\IUserManager;
+use OC\Security\CSRF\CsrfToken;
+use OC\Security\CSRF\CsrfTokenManager;
 use OCP\AppFramework\Http\Template\PublicTemplateResponse;
 use OCP\AppFramework\Http\NotFoundResponse;
 use OCP\AppFramework\Http\RedirectResponse;
-use OCP\AppFramework\Controller;
-use OCA\EntcoreAuth\Crypt;
-use OCA\EntcoreAuth\AuthServices;
-use OCA\EntcoreAuth\ExternalIds;
-use OC\Security\CSRF\CsrfToken;
-use OC\Security\CSRF\CsrfTokenManager;
+use OCA\EntAuth\AuthServices;
+use OCA\EntAuth\ExternalIds;
+use OCA\EntAuth\Crypt;
 
 
 class PageController extends Controller {
-	private $Crypt;
-	private $AuthServices;
-	private $Csrfman;
-	private $userSession;
-	private $request;
-	private $ExternalIds;
+    private $request;
+    private $userSession;
+    private $userManager;
+    private $Csrfman;
+    private $AuthServices;
+    private $ExternalIds;
+    private $Crypt;
 	
 	public function __construct($AppName,
 	    IRequest $request,
 	    IUserSession $userSession,
-	    Crypt $Crypt,
+	    IUserManager $userManager,
+	    CsrfTokenManager $Csrfman,
 	    AuthServices $AuthServices,
 	    ExternalIds $ExternalIds,
-	    CsrfTokenManager $Csrfman) {
+	    Crypt $Crypt) {
 		parent::__construct($AppName, $request);
-		$this->Crypt = $Crypt;
+		$this->request = $request;
+		$this->userSession = $userSession;
+		$this->userManager = $userManager;
+		$this->Csrfman = $Csrfman;
 		$this->AuthServices = $AuthServices;
 		$this->ExternalIds = $ExternalIds;
-		$this->Csrfman = $Csrfman;
-		$this->userSession = $userSession;
-		$this->request = $request;
+		$this->Crypt = $Crypt;
 	}
 
 	/**
@@ -61,15 +65,17 @@ class PageController extends Controller {
 	
 	/**
 	 * @NoAdminRequired
+	 * @UseSession
 	 * @PublicPage
 	 * @NoCSRFRequired
 	 * 
-	 * @param string $srv
+	 * @param string $srv auth/identity provider
 	 * @param string $code
 	 * @param string $state
 	 */
 	public function login($srv, $code, $state) {
 	    if($this->userSession->isLoggedIn()) $this->userSession->logout();
+	    //Get connector for specified auth/identity provider
 	    $con = $this->AuthServices->getConnector($srv);
 	    if(!$con) return new NotFoundResponse();
 	    $con->setRedirectUri();
@@ -87,9 +93,10 @@ class PageController extends Controller {
 	        $userData = $con->getUserData($tk);
 	        if((!$userData) || (!$userData->userId)) return new NotFoundResponse();
 	        //Search internal user that is linked to this external one.
-	        if($this->ExternalIds->GetUser($userData->userId)) {
+	        $uid = $this->ExternalIds->GetUser($userData->userId);
+	        if($uid) {
+	            if(!$this->userManager->userExists($uid)) return new NotFoundResponse();
 	            //Internal user found, log him in and redirect to home page
-	            
 	            
 	        } else {
 	            //Internal user not found,
@@ -98,7 +105,7 @@ class PageController extends Controller {
 	                [
 	                    'tk' => $this->Crypt->seal($tk),
 	                    'user' => $userData->ExtractDigest(),
-	                    'postUrl' => '',
+	                    'actionUrl' => '',
 	                ]);
 	            $template->setHeaderTitle('Authentification ENT');
 	            return $template;
@@ -112,14 +119,17 @@ class PageController extends Controller {
 	
 	/**
 	 * @NoAdminRequired
+	 * @UseSession
 	 * @PublicPage
 	 * @BruteForceProtection(action=login)
 	 */
-	public function associate($srv) {
+	public function associate($srv, $tk, $user, $password) {
 	    if($this->userSession->isLoggedIn()) {
 	        $this->userSession->logout();
 	        return new NotFoundResponse();
 	    }
+	    $tk = $this->Crypt->open($tk);
+	    if(!$tk) return new NotFoundResponse();
 	    
 	}
 	

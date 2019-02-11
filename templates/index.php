@@ -1,6 +1,6 @@
 <?php
-script('entcoreauth', 'script');
-style('entcoreauth', 'style');
+script('entauth', 'script');
+style('entauth', 'style');
 ?>
 
 <div id="app">
