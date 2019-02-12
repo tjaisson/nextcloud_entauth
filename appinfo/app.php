@@ -25,10 +25,6 @@
 namespace OCA\Entauth\AppInfo;
 
 \OC_App::registerLogIn([
-    'name' => 'Se connecter avec MonLycée.net',
-    'href' => '/tthf'//\OC::$server->getURLGenerator()->linkToRoute('registration.register.askEmail')
-]);
-\OC_App::registerLogIn([
-    'name' => 'Se connecter avec ParisClasseNumérique',
-    'href' => '/tthf'//\OC::$server->getURLGenerator()->linkToRoute('registration.register.askEmail')
+    'name' => 'Se connecter avec un ENT',
+    'href' => \OC::$server->getURLGenerator()->linkToRoute('entauth.page.index'),
 ]);

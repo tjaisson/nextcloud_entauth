@@ -56,7 +56,7 @@ use OC\Core\Controller\LoginController;
 		</p>
 
 		<div id="submit-wrapper">
-			<input type="submit" id="submit" class="login primary" title="" value="<?php p($l->t('Log in')); ?>" disabled="disabled" />
+			<input type="submit" id="submit" class="login primary" title="" value="<?php p($l->t('Log in')); ?>" disable="disabled" />
 			<div class="submit-icon icon-confirm-white"></div>
 		</div>
 

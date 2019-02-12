@@ -10,7 +10,7 @@ class Crypt {
     const keys = 'keys';
     const lock = 'lock';
     const method = 'aes128';
-    const period = 60;
+    const period = 600;
     private $appData;
     private $cyphKey;
     private $decyphKeys;
@@ -22,15 +22,24 @@ class Crypt {
  
     public function seal($str){
         $c = $this->getCyphKey();
-        return $c['keyId'] . \base64_encode(\openssl_encrypt($str, self::method, $c->k, \OPENSSL_RAW_DATA, $c->iv));
+        return $c['keyId'] . $this->base64_url_encode(\openssl_encrypt($str, self::method, $c->k, \OPENSSL_RAW_DATA, $c->iv));
     }
     
     public function open($str){
         $c = $this->getDecyphKey(\substr($str, 0, 3));
         if(!$c) return false;
-        return  \openssl_decrypt(\base64_decode(\substr($str, 3)), self::method, $c->k, \OPENSSL_RAW_DATA, $c->iv);
+        $str = $this->base64_url_decode(\substr($str, 3));
+        return  \openssl_decrypt($str, self::method, $c->k, \OPENSSL_RAW_DATA, $c->iv);
     }
 
+    private function base64_url_encode($input) {
+        return strtr(base64_encode($input), '+/=', '._-');
+    }
+    
+    private function base64_url_decode($input) {
+        return base64_decode(strtr($input, '._-', '+/='));
+    }
+    
     private function getStoreFiles() {
         try {
             $fld = $this->appData->getFolder(self::fld);

@@ -9,7 +9,8 @@
  */
 return [
     'routes' => [
-	   ['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
-	   ['name' => 'page#do_echo', 'url' => '/echo', 'verb' => 'POST'],
+        ['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
+        ['name' => 'page#login', 'url' => '/{srv}', 'verb' => 'GET'],
+        ['name' => 'page#associate', 'url' => '/{srv}', 'verb' => 'POST'],
     ]
 ];
