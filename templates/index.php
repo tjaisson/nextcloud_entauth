@@ -12,6 +12,6 @@ style('entauth', 'style');
 	<li><a class="button" href="<?php print_unescaped($_['backUrl']); ?>" >Retour</a></li>
 	</ul>
 	</div>
-	<p><?php p($l->n('Log in')); ?></p>
+	<p><?php p($l->t('Log in')); ?></p>
 </div>
 
