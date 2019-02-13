@@ -106,7 +106,7 @@ class PageController extends Controller {
 	        $userData = $prov->getUserData($tk);
 	        if((!$userData) || (!$userData->userId)) throw new \Exception('Could not retrieve user data');
 	        //Search internal user that is linked to this external one.
-	        $uid = $this->ExternalIds->GetUser($userData->userId);
+	        $uid = $this->ExternalIds->GetUser($prov->getDbId(), $userData->userId);
 	        if($uid) {
 	            if(!$this->userManager->userExists($uid)) throw new \Exception("User {$uid} does not exist");
 	            //Internal user found, log him in and redirect to home page
