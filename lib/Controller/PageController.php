@@ -65,6 +65,16 @@ class PageController extends Controller {
 	        ];
 	    }
 	    
+	    $parameters = [
+	        'providers' => $l,
+	        'backUrl' => $this->urlGenerator->linkToRoute('core.login.showLoginForm'),
+	        
+	    ];
+	    
+	    return new TemplateResponse(
+	        $this->appName, 'index', $parameters, 'guest'
+	        );
+	    
 	    $template = new PublicTemplateResponse($this->appName, 'index', 
 	        [
 	            'providers' => $l,
@@ -108,9 +118,12 @@ class PageController extends Controller {
 	        //Search internal user that is linked to this external one.
 	        $uid = $this->ExternalIds->GetUser($prov->getDbId(), $userData->userId);
 	        if($uid) {
-	            if(!$this->userManager->userExists($uid)) throw new \Exception("User {$uid} does not exist");
+	            $user = $this->userManager->get($uid);
+	            if(!$user) throw new \Exception("User {$uid} does not exist");
 	            //Internal user found, log him in and redirect to home page
-	            
+	            $this->userSession->completeLogin($user, ['loginName' => $uid, 'password' => 'SSO login']);
+	            $this->userSession->createSessionToken($this->request, $uid, $uid);
+	            return new RedirectResponse(\OC_Util::getDefaultPageUrl());
 	        } else {
 	            //Internal user not found,
 	            //Display form to request internal credencials

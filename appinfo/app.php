@@ -22,9 +22,16 @@
  *
  */
 
-namespace OCA\Entauth\AppInfo;
+namespace OCA\EntAuth\AppInfo;
 
 \OC_App::registerLogIn([
-    'name' => 'Se connecter avec un ENT',
+    'name' => 'Utiliser son compte ENT',
     'href' => \OC::$server->getURLGenerator()->linkToRoute('entauth.page.index'),
 ]);
+
+
+\OC::$server->getUserManager()->listen('\OC\User', 'postDelete', function ($user) {
+    $ExternalIds = \OC::$server->query('\OCA\EntAuth\ExternalIds');
+    if($ExternalIds) $ExternalIds->DeleteUser($user->getUID());
+});
+
