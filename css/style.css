@@ -1,3 +1,23 @@
-#hello {
-	color: red;
+#ent-logins {
+	
 }
+
+#ent-logins legend {
+	margin-bottom: 10px;
+}
+#ent-logins li {
+	height: 40px;
+	white-space: nowrap;
+	padding: 05px;
+}
+#ent-logins li a {
+	width: 100%;
+	display: inline-block;
+	text-align: center;
+	box-sizing: border-box;
+	background-color: #0082c9;
+	color: white;
+	border-radius: 3px;
+	border: 1px solid #fff;
+}
+

@@ -1,10 +1,16 @@
 <?php
-script('entauth', 'script');
+//script('entauth', 'script');
 style('entauth', 'style');
 ?>
 
-<?php foreach($_['providers'] as $prov) : ?> 
-	<p><a class="button" href="<?php print_unescaped($prov['url']); ?>" ><?php p($prov['name']); ?></a></p>
-<?php endforeach; ?>
-<p><a class="button" href="<?php print_unescaped($_['backUrl']); ?>">Retour</a></p>
+<form id="ent-logins">
+	<fieldset>
+		<ul>
 
+<?php foreach($_['providers'] as $prov) : ?> 
+	<li><a class="button" href="<?php print_unescaped($prov['url']); ?>" ><?php p($prov['name']); ?></a></li>
+<?php endforeach; ?>
+<li><a class="button" href="<?php print_unescaped($_['backUrl']); ?>">Retour</a></li>
+		</ul>
+	</fieldset>
+</form>
