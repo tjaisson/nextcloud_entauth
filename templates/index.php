@@ -1,5 +1,4 @@
 <?php
-//script('entauth', 'script');
 style('entauth', 'style');
 ?>
 
