@@ -12,12 +12,14 @@ class Crypt {
     const method = 'aes128';
     const period = 600;
     private $appData;
+    private $lockingProvider;
     private $cyphKey;
     private $decyphKeys;
     
     
-    public function __construct(IAppData $appData) {
+    public function __construct(IAppData $appData, ILockingProvider $lockingProvider) {
         $this->appData = $appData;
+        $this->lockingProvider = $lockingProvider;
     }
  
     public function seal($str){
@@ -122,6 +124,7 @@ class Crypt {
                 return false;
             }
             //need to rotate key
+
             $this->decyphKeys = false;
             if(\flock($oLock, \LOCK_EX)) {
                 try {
