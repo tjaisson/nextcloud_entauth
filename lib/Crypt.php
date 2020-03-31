@@ -127,7 +127,7 @@ class Crypt {
                 try {
                     $s = \json_decode($files['keys']->getContent());
                     if(!$s) $s = new \stdClass();
-                    if(!$s-c) $s->c = 'b';
+                    if(!$s->c) $s->c = 'b';
                     $k = $s->{$s->c};
                     if($k && ($k->t > $t)) {
                         $this->cyphKey = ['keyId' => "{$s->c}{$k->v}", 'key' => \base64_decode($k->k), 'iv' => \base64_decode($k->iv)];
