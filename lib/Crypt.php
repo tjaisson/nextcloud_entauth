@@ -19,7 +19,7 @@ class Crypt {
     
     public function __construct(IAppData $appData) {
         $this->appData = $appData;
-        $this->lockingProvider = \OC::$server->getLockingProvider();;
+        $this->lockingProvider = \OC::$server->getLockingProvider();
     }
  
     public function seal($str){
