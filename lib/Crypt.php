@@ -17,9 +17,9 @@ class Crypt {
     private $decyphKeys;
     
     
-    public function __construct(IAppData $appData, ILockingProvider $lockingProvider) {
+    public function __construct(IAppData $appData) {
         $this->appData = $appData;
-        $this->lockingProvider = $lockingProvider;
+        $this->lockingProvider = \OC::$server->getLockingProvider();;
     }
  
     public function seal($str){
