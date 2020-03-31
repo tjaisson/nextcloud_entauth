@@ -7,7 +7,7 @@
     <description><![CDATA[Allow SSO OAuth 2 authentication with ENT]]></description>
     <version>0.0.1</version>
     <licence>agpl</licence>
-    <author mail="thomas.jaisson@ac-paris.fr" homepage="https://github.com/tjaisson">Thomas Jaisson</author>
+    <author mail="thomas.jaisson@ac-paris.fr" homepage="https://www.ac-paris.fr/">Thomas Jaisson - Académie de Paris</author>
     <namespace>EntAuth</namespace>
     <category>integration</category>
     <bugs>https://github.com/tjaisson</bugs>
