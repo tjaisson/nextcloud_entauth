@@ -22,11 +22,13 @@ class Crypt {
         $this->lockingProvider = \OC::$server->getLockingProvider();
     }
  
+    /** @deprecated */
     public function seal($str){
         $c = $this->getCyphKey();
         return $c['keyId'] . $this->base64_url_encode(\openssl_encrypt($str, self::method, $c->k, \OPENSSL_RAW_DATA, $c->iv));
     }
     
+    /** @deprecated */
     public function open($str){
         $c = $this->getDecyphKey(\substr($str, 0, 3));
         if(!$c) return false;
