@@ -26,7 +26,7 @@ class ExternalIds {
         ->andwhere(
             $qb->expr()->eq('extid', $qb->createNamedParameter($extid, IQueryBuilder::PARAM_STR))
             );
-        $cursor = $qb->execute();
+        $cursor = $qb->executeQuery();
         $row = $cursor->fetch();
         $cursor->closeCursor();
         if($row) return $row['uid'];
@@ -43,7 +43,7 @@ class ExternalIds {
             'uid' => $qb->createNamedParameter($uid, IQueryBuilder::PARAM_STR),
         ]);
         try {
-            return $qb->execute() == 1 ? true : false;
+            return $qb->executeStatement() == 1 ? true : false;
         } catch(\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
             $uid2 = $this->GetUser($ent, $extid);
             if($uid2 == $uid) return true;
@@ -57,7 +57,7 @@ class ExternalIds {
         ->where(
             $qb->expr()->eq('uid', $qb->createNamedParameter($uid, IQueryBuilder::PARAM_STR))
             );
-        return $qb->execute() >= 1 ? true : false;
+        return $qb->executeStatement() >= 1 ? true : false;
     }
 
 }
