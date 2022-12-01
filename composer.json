@@ -1,0 +1,13 @@
+{
+	"name": "nextcloud/entauth",
+	"description": "Entcore OAuth 2 authentication",
+	"type": "project",
+	"license": "AGPL-3.0-or-later",
+	"authors": [
+		{
+			"name": "Thomas Jaisson"
+		}
+	],
+	"require-dev": {
+	}
+}
