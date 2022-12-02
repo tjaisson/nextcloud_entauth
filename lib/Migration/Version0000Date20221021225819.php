@@ -10,7 +10,7 @@ use OCP\DB\ISchemaWrapper;
 use OCP\Migration\SimpleMigrationStep;
 use OCP\Migration\IOutput;
 
-class Version000000Date20181013124731 extends SimpleMigrationStep {
+class Version0000Date20221021225819 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -28,14 +28,19 @@ class Version000000Date20181013124731 extends SimpleMigrationStep {
 		]);
 		$table->addColumn('extid', 'string', [
 			'notnull' => true,
-			'length' => 64,
+			'length' => 100,
 		]);
 		$table->addColumn('uid', 'string', [
 			'notnull' => true,
 			'length' => 64,
 		]);
+		$table->addColumn('exp', 'bigint', [
+			'unsigned' => true,
+			'notnull' => true,
+		]);
 
 		$table->setPrimaryKey(['ent', 'extid']);
+		$table->addIndex(['uid']);
 		return $schema;
 	}
 }
