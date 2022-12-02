@@ -9,6 +9,7 @@ use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 class ExternalIds {
+    const TTL = 6 * 31 * 24 * 3600; // 6 mois
     private const TBL = 'entauth';
     private $db;
     
@@ -18,12 +19,21 @@ class ExternalIds {
     
     public function GetUser($ent, $extid) {
         $qb = $this->db->getQueryBuilder();
+        $qb->delete(self::TBL)
+        ->where(
+            $qb->expr()->lt('exp', $qb->createNamedParameter(\time(), IQueryBuilder::PARAM_INT))
+            ,
+            $qb->expr()->eq('ent', $qb->createNamedParameter($ent, IQueryBuilder::PARAM_INT))
+            ,
+            $qb->expr()->eq('extid', $qb->createNamedParameter($extid, IQueryBuilder::PARAM_STR))
+            );
+        $qb->executeStatement();
+        $qb = $this->db->getQueryBuilder();
         $qb->select('uid')
         ->from(self::TBL)
         ->where(
             $qb->expr()->eq('ent', $qb->createNamedParameter($ent, IQueryBuilder::PARAM_INT))
-            )
-        ->andwhere(
+            ,
             $qb->expr()->eq('extid', $qb->createNamedParameter($extid, IQueryBuilder::PARAM_STR))
             );
         $cursor = $qb->executeQuery();
@@ -31,6 +41,18 @@ class ExternalIds {
         $cursor->closeCursor();
         if($row) return $row['uid'];
         return false;
+    }
+
+    public function TouchUser($ent, $extid) {
+        $qb = $this->db->getQueryBuilder();
+        $qb->update(self::TBL)
+        ->set('exp', $qb->createNamedParameter(\time() + self::TTL, IQueryBuilder::PARAM_INT))
+        ->where(
+            $qb->expr()->eq('ent', $qb->createNamedParameter($ent, IQueryBuilder::PARAM_INT))
+            ,
+            $qb->expr()->eq('extid', $qb->createNamedParameter($extid, IQueryBuilder::PARAM_STR))
+            );
+        $qb->executeStatement();
     }
 
     public function AddUser($ent, $extid, $uid) {
@@ -41,6 +63,7 @@ class ExternalIds {
             'ent' => $qb->createNamedParameter($ent, IQueryBuilder::PARAM_INT),
             'extid' => $qb->createNamedParameter($extid, IQueryBuilder::PARAM_STR),
             'uid' => $qb->createNamedParameter($uid, IQueryBuilder::PARAM_STR),
+            'exp' => $qb->createNamedParameter(\time() + self::TTL, IQueryBuilder::PARAM_INT)
         ]);
         try {
             return $qb->executeStatement() == 1 ? true : false;
