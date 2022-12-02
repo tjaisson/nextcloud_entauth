@@ -6,20 +6,37 @@ declare(strict_types=1);
 namespace OCA\EntAuth\AppInfo;
 
 use OCP\AppFramework\App;
-use OCP\EventDispatcher\IEventDispatcher;
-use OCP\User\Events\BeforeUserDeletedEvent;
+use OCP\AppFramework\Bootstrap\IBootContext;
+use OCP\AppFramework\Bootstrap\IBootstrap;
+use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\User\Events\UserDeletedEvent;
 
 use OCA\EntAuth\Event\UserDeleteListener;
+use OCA\EntAuth\Security\TokenServiceInterface;
+use OCA\EntAuth\Security\Impl\TokenService;
 
-class Application extends App {
+class Application extends App implements IBootstrap {
 	public const APP_ID = 'entauth';
 
-	public function __construct() {
+	public function __construct()
+	{
 		parent::__construct(self::APP_ID);
-		/** @var IEventDispatcher $dispatcher */
-		$dispatcher = $this->getContainer()->get(IEventDispatcher::class);
-		$dispatcher->addServiceListener(
-			BeforeUserDeletedEvent::class,
-			UserDeleteListener::class);
+	}
+
+	public function register(IRegistrationContext $context): void
+	{
+		$context->registerEventListener(
+			UserDeletedEvent::class,
+			UserDeleteListener::class
+		);
+		$context->registerServiceAlias(
+			TokenServiceInterface::class,
+			TokenService::class
+		);
+	}
+
+	public function boot(IBootContext $context): void
+	{
+		
 	}
 }
