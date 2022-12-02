@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 namespace OCA\EntAuth\Providers;
 
-use OCA\EntAuth\Provider;
-use OCA\EntAuth\UserData;
+use OCA\EntAuth\Providers\Provider;
+use OCA\EntAuth\Providers\EntcoreUserData;
 
 class EntcoreProvider extends Provider {
     public function getToken($code) {
@@ -18,7 +18,7 @@ class EntcoreProvider extends Provider {
         $rep = \json_decode($rep);
         return $rep->access_token;
     }
-    
+
     public function getUserdata($tk) {
         $url = $this->config['host'];
         $url = "https://{$url}/auth/oauth2/userinfo";
@@ -26,7 +26,7 @@ class EntcoreProvider extends Provider {
         $rep = \json_decode($rep);
         return new EntcoreUserData($rep);
     }
-    
+
     public function getLoginUrl($state) {
         $params = [];
         $params['scope'] = 'userinfo';
@@ -36,33 +36,7 @@ class EntcoreProvider extends Provider {
         $params['redirect_uri'] = \urlencode($this->redirectUri);
         $params['state'] = $state;
         $url = $this->config['host'];
-        $url = "https://{$url}/auth/oauth2/auth?";
-        $started = false;
-        foreach ($params as $key => $value) {
-            if ($started) {
-                $url .= '&';
-            } else {
-                $started = true;
-            }
-            $url .= "{$key}={$value}";
-        }
-        return $url;
-    }
-}
-
-class EntcoreUserData extends UserData {
-    private $data;
-    
-    function __construct($data) {
-        $this->data = $data;
-        $this->userId = $data->externalId;
-    }
-    
-    public function ExtractDigest() {
-        return [
-            'firstname' => $this->data->firstName,
-            'lastname' => $this->data->lastName,
-            'login' => $this->data->login,
-        ];
+        $url = "https://{$url}/auth/oauth2/auth";
+        return $this->buildUrl($url, $params);
     }
 }
