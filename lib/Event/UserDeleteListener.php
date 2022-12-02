@@ -7,7 +7,7 @@ namespace OCA\EntAuth\Event;
 
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\User\Events\BeforeUserDeletedEvent;
+use OCP\User\Events\UserDeletedEvent;
 
 use OCA\EntAuth\ExternalIds;
 
@@ -20,7 +20,7 @@ class UserDeleteListener implements IEventListener {
     }
 
     public function handle(Event $event): void {
-        if (!($event instanceOf BeforeUserDeletedEvent)) {
+        if (!($event instanceOf UserDeletedEvent)) {
             return;
         }
         $this->ext->DeleteUser($event->getUser()->getUID());
