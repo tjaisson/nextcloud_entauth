@@ -27,7 +27,7 @@ class ExternalIds {
             ,
             $qb->expr()->eq('extid', $qb->createNamedParameter($extid, IQueryBuilder::PARAM_STR))
             );
-        $qb->executeStatement();
+        $qb->execute();
         $qb = $this->db->getQueryBuilder();
         $qb->select('uid')
         ->from(self::TBL)
@@ -36,7 +36,7 @@ class ExternalIds {
             ,
             $qb->expr()->eq('extid', $qb->createNamedParameter($extid, IQueryBuilder::PARAM_STR))
             );
-        $cursor = $qb->executeQuery();
+        $cursor = $qb->execute();
         $row = $cursor->fetch();
         $cursor->closeCursor();
         if($row) return $row['uid'];
@@ -52,7 +52,7 @@ class ExternalIds {
             ,
             $qb->expr()->eq('extid', $qb->createNamedParameter($extid, IQueryBuilder::PARAM_STR))
             );
-        $qb->executeStatement();
+        $qb->execute();
     }
 
     public function AddUser($ent, $extid, $uid) {
@@ -66,7 +66,7 @@ class ExternalIds {
             'exp' => $qb->createNamedParameter(\time() + self::TTL, IQueryBuilder::PARAM_INT)
         ]);
         try {
-            return $qb->executeStatement() == 1 ? true : false;
+            return $qb->execute() == 1 ? true : false;
         } catch(\Doctrine\DBAL\Exception\UniqueConstraintViolationException $e) {
             $uid2 = $this->GetUser($ent, $extid);
             if($uid2 == $uid) return true;
@@ -80,7 +80,7 @@ class ExternalIds {
         ->where(
             $qb->expr()->eq('uid', $qb->createNamedParameter($uid, IQueryBuilder::PARAM_STR))
             );
-        return $qb->executeStatement() >= 1 ? true : false;
+        return $qb->execute() >= 1 ? true : false;
     }
 
 }

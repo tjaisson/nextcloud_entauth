@@ -7,6 +7,7 @@ namespace OCA\EntAuth\Security\Impl;
 
 use OCA\EntAuth\Security\NonceRepositoryInterface;
 use OCP\IDBConnection;
+use Doctrine\DBAL\FetchMode;
 
 class NonceRepository implements NonceRepositoryInterface
 {
@@ -37,8 +38,8 @@ class NonceRepository implements NonceRepositoryInterface
             $val[0] = \chr(0x7f & \ord($val[0])); 
             $val = \unpack('J',$val)[1] ;
             $qb->setParameter(':val', $val);
-            $rs = $qb->executeQuery();
-            $exists = $rs->fetchOne();
+            $rs = $qb->execute();
+            $exists = $rs->fetch(FetchMode::COLUMN);
             $rs->closeCursor();
             if (!$exists) return $val;
         }
@@ -55,15 +56,15 @@ class NonceRepository implements NonceRepositoryInterface
         $qb = $this->db->getQueryBuilder();
         $qb->select('EXISTS(' . $qbSub->getSQL() . ')');
         $qb->setParameter(':val', $nonce);
-        $rs = $qb->executeQuery();
-        $exists = $rs->fetchOne();
+        $rs = $qb->execute();
+        $exists = $rs->fetch(FetchMode::COLUMN);
         $rs->closeCursor();
         if (!!$exists) return false;
 
         $qb = $this->db->getQueryBuilder();
         $qb->insert($tbl)->values(['val' => ':val', 'exp' => ':exp']);
         $qb->setParameters([':val' => $nonce, ':exp' => $exp]);
-        $qb->executeStatement();
+        $qb->execute();
         return true;
     }
 
@@ -73,6 +74,6 @@ class NonceRepository implements NonceRepositoryInterface
         $qb = $this->db->getQueryBuilder();
         $qb->delete($tbl)->where($qb->expr()->lt('exp', ':exp'));
         $qb->setParameter(':exp', \time());
-        $qb->executeStatement();
+        $qb->execute();
     }
 }

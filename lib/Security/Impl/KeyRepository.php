@@ -8,6 +8,7 @@ namespace OCA\EntAuth\Security\Impl;
 use OCA\EntAuth\Security\KeyInterface;
 use OCA\EntAuth\Security\KeyRepositoryInterface;
 use OCP\IDBConnection;
+use Doctrine\DBAL\FetchMode;
 
 Class KeyRepository implements KeyRepositoryInterface
 {
@@ -28,8 +29,8 @@ Class KeyRepository implements KeyRepositoryInterface
         $qb = $this->db->getQueryBuilder();
         $qb->select('id', 'sign', 'cypher', 'exp')->from($tbl)->where($qb->expr()->eq('id', ':id'));
         $qb->setParameter(':id',$id);
-        $rs = $qb->executeQuery();
-        $rec = $rs->fetch(\PDO::FETCH_OBJ);
+        $rs = $qb->execute();
+        $rec = $rs->fetch(FetchMode::STANDARD_OBJECT);
         $rs->closeCursor();
         if (! $rec) return null;
         return new Key($rec);
@@ -47,8 +48,8 @@ Class KeyRepository implements KeyRepositoryInterface
         ->where($qb->expr()->gte('exp', ':min'))
         ->where($qb->expr()->lte('exp', ':max'));
         $qb->setParameters([':min' => $min, ':max' => $max]);
-        $rs = $qb->executeQuery();
-        $rec = $rs->fetch(\PDO::FETCH_OBJ);
+        $rs = $qb->execute();
+        $rec = $rs->fetch(FetchMode::STANDARD_OBJECT);
         $rs->closeCursor();
         if ($rec) return new Key($rec);
         else return $this->createKey($max);
@@ -60,7 +61,7 @@ Class KeyRepository implements KeyRepositoryInterface
         $qb = $this->db->getQueryBuilder();
         $qb->delete($tbl)->where($qb->expr()->lt('exp', ':exp'));
         $qb->setParameter(':exp', \time());
-        $qb->executeStatement();
+        $qb->execute();
     }
 
     protected function createKey(int $exp): KeyInterface
@@ -75,7 +76,7 @@ Class KeyRepository implements KeyRepositoryInterface
         $qb = $this->db->getQueryBuilder();
         $qb->insert($tbl)->values(['id' => ':id', 'sign' => ':sign', 'cypher' => ':cypher', 'exp' => ':exp']);
         $qb->setParameters([':id' => $rec->id, ':sign' => $rec->sign, ':cypher' => $rec->cypher, ':exp' => $rec->exp]);
-        $qb->executeStatement();
+        $qb->execute();
         return new Key($rec);
     }
 
@@ -93,8 +94,8 @@ Class KeyRepository implements KeyRepositoryInterface
         while ($maxAttempts-- > 0) {
             $id = \unpack('V',\random_bytes(4))[1];
             $qb->setParameter(':id', $id);
-            $rs = $qb->executeQuery();
-            $exists = $rs->fetchOne();
+            $rs = $qb->execute();
+            $exists = $rs->fetch(FetchMode::COLUMN);
             $rs->closeCursor();
             if (!$exists) return $id;
         }

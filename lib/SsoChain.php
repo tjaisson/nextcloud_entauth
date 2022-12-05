@@ -50,7 +50,7 @@ class SsoChain {
 	public function __construct(UserDisabledCheckCommand $userDisabledCheckCommand,
 								CompleteLoginCommand $completeLoginCommand,
 								CreateSessionTokenCommand $createSessionTokenCommand,
-								SetUserTimezoneCommand $setUserTimezoneCommand,
+								SetUserTimezoneCommand $setUserTimezoneCommand
 	) {
 		$this->userDisabledCheckCommand = $userDisabledCheckCommand;
 		$this->completeLoginCommand = $completeLoginCommand;
