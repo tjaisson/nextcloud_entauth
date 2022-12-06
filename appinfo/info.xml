@@ -18,10 +18,4 @@
     <dependencies>
         <nextcloud min-version="20" max-version="24"/>
     </dependencies>
-    <navigations>
-        <navigation>
-            <name>Ent Auth</name>
-            <route>entauth.page.index</route>
-        </navigation>
-    </navigations>
 </info>
