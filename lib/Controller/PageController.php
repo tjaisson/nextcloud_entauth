@@ -168,6 +168,7 @@ class PageController extends Controller {
 				$uid,
 				'SSO login'
 			);
+			$data->setUser($user);
 			$result = $this->ssoChain->process($data);
 			if (!$result->isSuccess()) throw new \Exception("Connexion impossible.");
 
