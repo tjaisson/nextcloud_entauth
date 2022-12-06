@@ -12,8 +12,11 @@ class EntcoreProvider extends Provider {
     public function getToken($code) {
         $url = $this->config['host'];
         $url = "https://{$url}/auth/oauth2/token";
-        $redirectUri = \urlencode($this->redirectUri);
-        $dt = "grant_type=authorization_code&code={$code}&redirect_uri={$redirectUri}";
+        $dt = [
+            'grant_type' => 'authorization_code',
+            'code' => $code,
+            'redirect_uri' => $this->redirectUri
+        ];
         $rep = $this->doPostRequest($url, $dt, $this->config['appId'], $this->config['secret']);
         $rep = \json_decode($rep);
         return $rep->access_token;

@@ -54,7 +54,10 @@ abstract class Provider {
         $creds = \base64_encode("{$id}:{$pw}");
         $resp = $client->post(
             $url,
-            ['headers' => ["Authorization: Basic {$creds}"]]
+            [
+                'headers' => ['Authorization' => "Basic {$creds}"],
+                'body' => $dt
+            ]
         );
         if ($resp->getStatusCode() != Http::STATUS_OK) return false;
         return $resp->getBody();
@@ -64,7 +67,7 @@ abstract class Provider {
         $client = $this->clientService->newClient();
         $resp = $client->get(
             $url,
-            ['headers' => ["Authorization: Bearer {$tk}"]]
+            ['headers' => ['Authorization' => "Bearer {$tk}"]]
         );
         if ($resp->getStatusCode() != Http::STATUS_OK) return false;
         return $resp->getBody();
