@@ -11,10 +11,10 @@ class Key implements KeyInterface
 {
     public function __construct($rec)
     {
-        $this->id = $rec->id;
-        $this->sign = $rec->sign;
-        $this->cypher = $rec->cypher;
-        $this->exp = $rec->exp;
+        $this->id = (int)$rec->id;
+        $this->sign = (string)$rec->sign;
+        $this->cypher = (string)$rec->cypher;
+        $this->exp = (int)$rec->exp;
     }
 
     protected int $id;
