@@ -7,6 +7,8 @@ namespace OCA\EntAuth\Security\Impl;
 
 use OCA\EntAuth\Security\NonceRepositoryInterface;
 use OCP\IDBConnection;
+use OC\DB\QueryBuilder\QueryFunction;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use Doctrine\DBAL\FetchMode;
 
 class NonceRepository implements NonceRepositoryInterface
@@ -26,18 +28,20 @@ class NonceRepository implements NonceRepositoryInterface
     {
         $this->clear();
         $tbl = self::TABLE;
-        $qbSub = $this->db->getQueryBuilder();
-        $qbSub->select('1')->from($tbl)->where($qbSub->expr()->eq('val', ':val'));
-
         $qb = $this->db->getQueryBuilder();
-        $qb->select('EXISTS(' . $qbSub->getSQL() . ')');
+        $qbSub = $this->db->getQueryBuilder();
+        $qbSub->select($qbSub->expr()->literal('one'))->from($tbl)->where(
+            $qbSub->expr()->eq('val', $qb->createParameter('val'))
+        );
+
+        $qb->select(new QueryFunction('EXISTS(' . $qbSub->getSQL() . ')'));
 
         $maxAttempts = self::MAX_ATTEMPTS;
         while ($maxAttempts-- > 0) {
             $val = \random_bytes(8);
             $val[0] = \chr(0x7f & \ord($val[0])); 
             $val = \unpack('J',$val)[1] ;
-            $qb->setParameter(':val', $val);
+            $qb->setParameter('val', $val);
             $rs = $qb->execute();
             $exists = $rs->fetch(FetchMode::COLUMN);
             $rs->closeCursor();
@@ -50,12 +54,15 @@ class NonceRepository implements NonceRepositoryInterface
     {
         $this->clear();
         $tbl = self::TABLE;
-        $qbSub = $this->db->getQueryBuilder();
-        $qbSub->select('1')->from($tbl)->where($qbSub->expr()->eq('val', ':val'));
-
         $qb = $this->db->getQueryBuilder();
-        $qb->select('EXISTS(' . $qbSub->getSQL() . ')');
-        $qb->setParameter(':val', $nonce);
+        $qbSub = $this->db->getQueryBuilder();
+        $qbSub->select($qbSub->expr()->literal('one'))->from($tbl)->where(
+            $qbSub->expr()->eq('val', $qb->createParameter('val'))
+        );
+
+        $qb->select(new QueryFunction('EXISTS(' . $qbSub->getSQL() . ')'));
+
+        $qb->setParameter('val', $nonce);
         $rs = $qb->execute();
         $exists = $rs->fetch(FetchMode::COLUMN);
         $rs->closeCursor();
@@ -72,8 +79,9 @@ class NonceRepository implements NonceRepositoryInterface
     {
         $tbl = self::TABLE;
         $qb = $this->db->getQueryBuilder();
-        $qb->delete($tbl)->where($qb->expr()->lt('exp', ':exp'));
-        $qb->setParameter(':exp', \time());
+        $qb->delete($tbl)->where(
+            $qb->expr()->lt('exp', $qb->createNamedParameter(\time(), IQueryBuilder::PARAM_INT))
+        );
         $qb->execute();
     }
 }

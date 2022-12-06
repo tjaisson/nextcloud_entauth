@@ -8,6 +8,8 @@ namespace OCA\EntAuth\Security\Impl;
 use OCA\EntAuth\Security\KeyInterface;
 use OCA\EntAuth\Security\KeyRepositoryInterface;
 use OCP\IDBConnection;
+use OCP\DB\QueryBuilder\IQueryBuilder;
+use OC\DB\QueryBuilder\QueryFunction;
 use Doctrine\DBAL\FetchMode;
 
 Class KeyRepository implements KeyRepositoryInterface
@@ -27,8 +29,10 @@ Class KeyRepository implements KeyRepositoryInterface
         $this->clear();
         $tbl = self::TABLE;
         $qb = $this->db->getQueryBuilder();
-        $qb->select('id', 'sign', 'cypher', 'exp')->from($tbl)->where($qb->expr()->eq('id', ':id'));
-        $qb->setParameter(':id',$id);
+        $qb->select('id', 'sign', 'cypher', 'exp')
+        ->from($tbl)->where(
+            $qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
+        );
         $rs = $qb->execute();
         $rec = $rs->fetch(FetchMode::STANDARD_OBJECT);
         $rs->closeCursor();
@@ -45,9 +49,10 @@ Class KeyRepository implements KeyRepositoryInterface
         $max = $now + 2* \max(self::ROTATION, $ttl);
         $qb = $this->db->getQueryBuilder();
         $qb->select('id', 'sign', 'cypher', 'exp')->from($tbl)
-        ->where($qb->expr()->gte('exp', ':min'))
-        ->where($qb->expr()->lte('exp', ':max'));
-        $qb->setParameters([':min' => $min, ':max' => $max]);
+        ->where(
+            $qb->expr()->gte('exp', $qb->createNamedParameter($min, IQueryBuilder::PARAM_INT)),
+            $qb->expr()->lte('exp', $qb->createNamedParameter($max, IQueryBuilder::PARAM_INT))
+        );
         $rs = $qb->execute();
         $rec = $rs->fetch(FetchMode::STANDARD_OBJECT);
         $rs->closeCursor();
@@ -59,8 +64,9 @@ Class KeyRepository implements KeyRepositoryInterface
     {
         $tbl = self::TABLE;
         $qb = $this->db->getQueryBuilder();
-        $qb->delete($tbl)->where($qb->expr()->lt('exp', ':exp'));
-        $qb->setParameter(':exp', \time());
+        $qb->delete($tbl)->where(
+            $qb->expr()->lt('exp',$qb->createNamedParameter(\time(), IQueryBuilder::PARAM_INT))
+        );
         $qb->execute();
     }
 
@@ -84,16 +90,18 @@ Class KeyRepository implements KeyRepositoryInterface
     protected function createId()
     {
         $tbl = self::TABLE;
-        $qbSub = $this->db->getQueryBuilder();
-        $qbSub->select('1')->from($tbl)->where($qbSub->expr()->eq('id', ':id'));
-
         $qb = $this->db->getQueryBuilder();
-        $qb->select('EXISTS(' . $qbSub->getSQL() . ')');
+        $qbSub = $this->db->getQueryBuilder();
+        $qbSub->select($qbSub->expr()->literal('one'))->from($tbl)->where(
+            $qbSub->expr()->eq('id', $qb->createParameter('id'))
+        );
+
+        $qb->select(new QueryFunction('EXISTS(' . $qbSub->getSQL() . ')'));
 
         $maxAttempts = self::MAX_ATTEMPTS;
         while ($maxAttempts-- > 0) {
             $id = \unpack('V',\random_bytes(4))[1];
-            $qb->setParameter(':id', $id);
+            $qb->setParameter('id', $id);
             $rs = $qb->execute();
             $exists = $rs->fetch(FetchMode::COLUMN);
             $rs->closeCursor();
