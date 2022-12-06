@@ -8,7 +8,7 @@ namespace OCA\EntAuth;
 use OCP\Http\Client\IClientService;
 
 class AuthServices {
-    const CONF_FILE = 'entconf.php';
+    const CONF_FILE = 'entauth.config.php';
     private $config;
 	/** @var IClientService */
 	private $clientService;

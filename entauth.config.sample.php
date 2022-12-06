@@ -2,7 +2,7 @@
 /**
  * Exemple de fichier de configuration
  * Copiez ce fichier dans le répertoire config de nextcloud
- * en le renommant entconf.php
+ * en le renommant entauth.config.php
  * 
  * Les clefs 'ent1', 'ent2' sont utilisées pour former les url
  * de connexion
