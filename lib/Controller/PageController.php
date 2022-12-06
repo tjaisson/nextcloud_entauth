@@ -147,7 +147,7 @@ class PageController extends Controller {
 				if ($this->userSession->getUser()->getUID() === $uid) {
 					// L'utilisateur est déjà connecté
 					$this->ExternalIds->TouchUser($prov->getDbId(), $userData->userId);
-					return new RedirectResponse($this->urlGenerator->linkToDefaultPageUrl());
+					return new RedirectResponse(\OC_Util::getDefaultPageUrl());
 				} else {
 					// Changement d'utilisateur
 					$this->userSession->logout();
@@ -174,25 +174,28 @@ class PageController extends Controller {
 			$this->userSession->completeLogin($user, ['loginName' => $uid, 'password' => 'SSO login']);
 			$this->userSession->createSessionToken($this->request, $uid, $uid);
 			$this->ExternalIds->TouchUser($prov->getDbId(), $userData->userId);
-			return new RedirectResponse($this->urlGenerator->linkToDefaultPageUrl());
+			return new RedirectResponse(\OC_Util::getDefaultPageUrl());
 		} else {
 			//Internal user not found,
 			//Display login form to request internal credencials
-			return $this->createLoginFormResponse(
-				null,
-				$prov,
-				$tk,
-				$userData->ExtractDigest()
-			);
+			if ($this->userSession->isLoggedIn()) {
+				$this->userSession->logout();
+				$builder = $this->tkService->createBuilder();
+				$builder->withEncription()->withNonce()->withSubject(self::TK_SUB)
+				->withData($tk)->withTTL(10);
+				return new RedirectResponse($this->urlGenerator->linkToRoute(
+					'entauth.page.login',
+					['srv' => $prov->getSrv(), 'tk' => $builder->toString()]
+				));
+			} else {
+				return $this->createLoginFormResponse(
+					null,
+					$prov,
+					$tk,
+					$userData->ExtractDigest()
+				);
+			}
 		}
-
-		if($this->userSession->isLoggedIn()) $this->userSession->logout();
-
-		if($code || $state) {
-	        //we are back from auth provider
-	        if((!$code) || (!$state)) return new NotFoundResponse();
-	    } else {
-	    }
 	}
 	
 	/**
@@ -246,7 +249,7 @@ class PageController extends Controller {
 	    return new TemplateResponse(
 			$this->appName,
 			'done',
-			['backUrl' => $this->urlGenerator->linkToDefaultPageUrl()],
+			['backUrl' => \OC_Util::getDefaultPageUrl()],
 			'guest'
 		);
 	}
