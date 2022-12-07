@@ -10,7 +10,6 @@ use OCA\EntAuth\Security\KeyRepositoryInterface;
 use OCP\IDBConnection;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OC\DB\QueryBuilder\QueryFunction;
-use Doctrine\DBAL\FetchMode;
 
 Class KeyRepository implements KeyRepositoryInterface
 {
@@ -34,10 +33,10 @@ Class KeyRepository implements KeyRepositoryInterface
             $qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT))
         );
         $rs = $qb->execute();
-        $rec = $rs->fetch(FetchMode::STANDARD_OBJECT);
+        $rec = $rs->fetchAll(\PDO::FETCH_ASSOC);
         $rs->closeCursor();
-        if (! $rec) return null;
-        return new Key($rec);
+        if (\count($rec) !== 1) return null;
+        return new Key((object)$rec[0]);
     }
 
     public function getSuitableKey(int $ttl): KeyInterface
@@ -52,11 +51,12 @@ Class KeyRepository implements KeyRepositoryInterface
         ->where(
             $qb->expr()->gte('exp', $qb->createNamedParameter($min, IQueryBuilder::PARAM_INT)),
             $qb->expr()->lte('exp', $qb->createNamedParameter($max, IQueryBuilder::PARAM_INT))
-        );
+        )
+        ->setMaxResults(1);
         $rs = $qb->execute();
-        $rec = $rs->fetch(FetchMode::STANDARD_OBJECT);
+        $rec = $rs->fetchAll(\PDO::FETCH_ASSOC);
         $rs->closeCursor();
-        if ($rec) return new Key($rec);
+        if (\count($rec) === 1) return new Key((object)$rec[0]);
         else return $this->createKey($max);
     }
 
@@ -80,8 +80,17 @@ Class KeyRepository implements KeyRepositoryInterface
         ];
         $tbl = self::TABLE;
         $qb = $this->db->getQueryBuilder();
-        $qb->insert($tbl)->values(['id' => ':id', 'sign' => ':sign', 'cypher' => ':cypher', 'exp' => ':exp']);
-        $qb->setParameters([':id' => $rec->id, ':sign' => $rec->sign, ':cypher' => $rec->cypher, ':exp' => $rec->exp]);
+        $qb->insert($tbl)->values([
+            'id' => $qb->createParameter('id'),
+            'sign' => $qb->createParameter('sign'),
+            'cypher' => $qb->createParameter('cypher'),
+            'exp' => $qb->createParameter('exp')
+        ])
+        ->setParameter('id', $rec->id, IQueryBuilder::PARAM_INT)
+        ->setParameter('sign', $rec->sign, IQueryBuilder::PARAM_STR)
+        ->setParameter('cypher', $rec->cypher, IQueryBuilder::PARAM_STR)
+        ->setParameter('exp', $rec->exp, IQueryBuilder::PARAM_INT)
+        ;
         $qb->execute();
         return new Key($rec);
     }
@@ -103,7 +112,7 @@ Class KeyRepository implements KeyRepositoryInterface
             $id = \unpack('V',\random_bytes(4))[1];
             $qb->setParameter('id', $id);
             $rs = $qb->execute();
-            $exists = $rs->fetch(FetchMode::COLUMN);
+            $exists = $rs->fetch(\PDO::FETCH_COLUMN);
             $rs->closeCursor();
             if (!$exists) return $id;
         }

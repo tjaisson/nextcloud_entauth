@@ -37,10 +37,10 @@ class ExternalIds {
             $qb->expr()->eq('extid', $qb->createNamedParameter($extid, IQueryBuilder::PARAM_STR))
             );
         $cursor = $qb->execute();
-        $row = $cursor->fetch();
+        $row = $cursor->fetchAll(\PDO::FETCH_ASSOC);
+        if (\count($row) === 0) return false;
         $cursor->closeCursor();
-        if($row) return $row['uid'];
-        return false;
+        return $row[0]['uid'];
     }
 
     public function TouchUser($ent, $extid) {

@@ -9,7 +9,6 @@ use OCA\EntAuth\Security\NonceRepositoryInterface;
 use OCP\IDBConnection;
 use OC\DB\QueryBuilder\QueryFunction;
 use OCP\DB\QueryBuilder\IQueryBuilder;
-use Doctrine\DBAL\FetchMode;
 
 class NonceRepository implements NonceRepositoryInterface
 {
@@ -43,7 +42,7 @@ class NonceRepository implements NonceRepositoryInterface
             $val = \unpack('J',$val)[1] ;
             $qb->setParameter('val', $val);
             $rs = $qb->execute();
-            $exists = $rs->fetch(FetchMode::COLUMN);
+            $exists = $rs->fetch(\PDO::FETCH_COLUMN);
             $rs->closeCursor();
             if (!$exists) return $val;
         }
@@ -62,15 +61,19 @@ class NonceRepository implements NonceRepositoryInterface
 
         $qb->select(new QueryFunction('EXISTS(' . $qbSub->getSQL() . ')'));
 
-        $qb->setParameter('val', $nonce);
+        $qb->setParameter('val', $nonce, IQueryBuilder::PARAM_INT);
         $rs = $qb->execute();
-        $exists = $rs->fetch(FetchMode::COLUMN);
+        $exists = $rs->fetch(\PDO::FETCH_COLUMN);
         $rs->closeCursor();
         if (!!$exists) return false;
 
         $qb = $this->db->getQueryBuilder();
-        $qb->insert($tbl)->values(['val' => ':val', 'exp' => ':exp']);
-        $qb->setParameters([':val' => $nonce, ':exp' => $exp]);
+        $qb->insert($tbl)->values([
+            'val' => $qb->createParameter('val'),
+            'exp' => $qb->createParameter('exp')
+        ])
+        ->setParameter('val', $nonce, IQueryBuilder::PARAM_INT)
+        ->setParameter('exp', $exp, IQueryBuilder::PARAM_INT);
         $qb->execute();
         return true;
     }
