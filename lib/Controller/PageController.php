@@ -171,9 +171,6 @@ class PageController extends Controller {
 			$data->setUser($user);
 			$result = $this->ssoChain->process($data);
 			if (!$result->isSuccess()) throw new \Exception("Connexion impossible.");
-
-			$this->userSession->completeLogin($user, ['loginName' => $uid, 'password' => 'SSO login']);
-			$this->userSession->createSessionToken($this->request, $uid, $uid);
 			$this->ExternalIds->TouchUser($prov->getDbId(), $userData->userId);
 			return new RedirectResponse(\OC_Util::getDefaultPageUrl());
 		} else {
